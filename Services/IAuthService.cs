@@ -6,5 +6,6 @@ namespace ProductCRUD.Services
     {
         Task<AuthResponseDto> RegisterAsync(RegisterDto dto);
         Task<AuthResponseDto?> LoginAsync(LoginDto dto);
+        Task<bool> DeleteAsync(int id);
     }
 }

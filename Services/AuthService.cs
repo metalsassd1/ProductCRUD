@@ -1,30 +1,37 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Configuration;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 using ProductCRUD.Data;
 using ProductCRUD.DTOs;
 using ProductCRUD.Model;
+using System.Text;
+
 
 namespace ProductCRUD.Services
 {
     public class AuthService : IAuthService
     {
         private readonly AppDbContext _context;
+        private readonly string _jwtSecret;
+        private readonly IConfiguration _configuration;
 
-        public AuthService(AppDbContext context)
+        public AuthService(AppDbContext context , IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
+            _jwtSecret = _configuration["Jwt:Secret"]!;
         }
 
-        // 1. 📝 ระบบสมัครสมาชิก (Register)
         public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
         {
-            // เช็กก่อนว่าชื่อ Username นี้ถูกคนอื่นใช้ไปหรือยัง
             var userExists = await _context.Users.AnyAsync(u => u.Username.ToLower() == dto.Username.ToLower());
             if (userExists)
             {
                 return new AuthResponseDto { Message = "Username นี้มีผู้ใช้งานแล้ว" };
             }
 
-            // 💡 แฮชรหัสผ่านแปลงเป็นตัวเลขยุ่งเหยิงก่อนเซฟลง DB ด้วย BCrypt
             string salt = BCrypt.Net.BCrypt.GenerateSalt(12);
             string hashedPassword = BCrypt.Net.BCrypt.HashPassword(dto.Password, salt);
 
@@ -46,24 +53,55 @@ namespace ProductCRUD.Services
             };
         }
 
-        // 2. 🔑 ระบบล็อกอิน (Login)
         public async Task<AuthResponseDto?> LoginAsync(LoginDto dto)
         {
-            // ค้นหา User ตาม Username ที่ส่งมา
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
-            if (user == null) return null; // หาชื่อไม่เจอ ส่ง null กลับไป
+            if (user == null) return null;
 
-            // 💡 ใช้ BCrypt ตรวจสอบว่ารหัสผ่านที่พิมเข้ามา ตรงกับรหัสผ่านที่แฮชไว้ใน DB ไหม
             bool isPasswordValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
-            if (!isPasswordValid) return null; // รหัสผ่านไม่ตรง ส่ง null กลับไป
+            if (!isPasswordValid) return null;
 
-            // ถ้ารหัสถูกต้อง ส่งข้อมูลกลับไปให้หน้าบ้านเอาไปเก็บไว้ทำระบบสิทธิ์ต่อ
+            var expiresJson = _configuration["Jwt:ExpiresInMinutes"];
+            double minutes = double.TryParse(expiresJson, out var parsedMinutes) ? parsedMinutes : 60;
+
+            var expiresAt = DateTime.UtcNow.AddMinutes(minutes);
+
+            // เริ่มกระบวนการปั๊มตั๋ว JWT Token
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes(_jwtSecret);
+
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                // ฝังชื่อและสิทธิ์ (Role) ลงไปในไส้ของตั๋ว
+                Subject = new ClaimsIdentity(new[]
+                {
+                    new Claim(ClaimTypes.Name, user.Username),
+                    new Claim(ClaimTypes.Role, user.Role)
+                }),
+                Expires = expiresAt,
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+            };
+
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            string finalToken = tokenHandler.WriteToken(token); // ได้สายอักขระ Token ยาวๆ มาครอง
+
             return new AuthResponseDto
             {
                 Username = user.Username,
                 Role = user.Role,
+                Token = finalToken, // 🚀 ส่งตั๋วกลับไปแล้ว!
+                ExpiresAt = expiresAt,
                 Message = "เข้าสู่ระบบสำเร็จ"
             };
+        }
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var users = await _context.Users.FindAsync(id);
+            if (users == null) return false;
+
+            _context.Users.Remove(users);
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }
