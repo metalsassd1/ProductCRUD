@@ -33,4 +33,9 @@ namespace ProductCRUD.DTOs
         [Range(1, int.MaxValue, ErrorMessage = "กรุณาเลือกหมวดหมู่สินค้า")]
         public int CategoryId { get; set; }
     }
+
+    public class ProductDeleteDto
+    {
+        public List<int> Ids { get; set; } = new List<int>();
+    }
 }

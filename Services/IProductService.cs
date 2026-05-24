@@ -9,5 +9,6 @@ namespace ProductCRUD.Services
         Task<ProductResponseDto> CreateAsync(ProductCreateUpdateDto dto);
         Task<bool> UpdateAsync(int id, ProductCreateUpdateDto dto);
         Task<bool> DeleteAsync(int id);
+        Task<bool> DeleteListAsync(List<int> ids);
     }
 }

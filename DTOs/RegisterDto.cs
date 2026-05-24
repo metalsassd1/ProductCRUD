@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations; // 👈 ต้องใช้ Tool ตัวนี้ในการดักจับ
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace ProductCRUD.DTOs
 {

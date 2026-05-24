@@ -39,6 +39,18 @@ namespace ProductCRUD.Services
                 .ToListAsync();
         }
 
+        public async Task<bool> DeleteListAsync(List<int> ids)
+        {
+            if (ids == null || !ids.Any()) return false;
+
+            var deletedCount = await _context.Products
+                .Where(p => ids.Contains(p.Id))
+                .ExecuteDeleteAsync();
+
+            // ส่งค่ากลับเป็น true ถ้ามีการลบออกไปจริงมากกว่า 0 รายการ
+            return deletedCount > 0;
+        }
+
         public async Task<ProductResponseDto?> GetByIdAsync(int id)
         {
             var p = await _context.Products.Include(p => p.Category).FirstOrDefaultAsync(x => x.Id == id);

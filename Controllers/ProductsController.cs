@@ -51,5 +51,19 @@ namespace ProductCRUD.Controllers
             var success = await _productService.DeleteAsync(id);
             return success ? NoContent() : NotFound();
         }
+
+        [HttpPost("deleteList")]
+        public async Task<IActionResult> DeleteList([FromBody] ProductDeleteDto dto)
+        {
+            if (dto == null || dto.Ids == null || !dto.Ids.Any())
+            {
+                return BadRequest(new { message = "กรุณาระบุ ID สินค้าที่ต้องการลบ" });
+            }
+
+            var success = await _productService.DeleteListAsync(dto.Ids);
+            
+            // ถ้าลบสำเร็จส่ง 204 (NoContent) หรือ 200 (Ok) กลับ
+            return success ? NoContent() : NotFound(new { message = "ไม่พบสินค้าตาม ID ที่ระบุ หรือสินค้าถูกลบไปก่อนหน้านี้แล้ว" });
+        }
     }
 }
