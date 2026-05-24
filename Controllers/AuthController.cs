@@ -39,11 +39,11 @@ namespace ProductCRUD.Controllers
             return Ok(result);
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var success = await _authService.DeleteAsync(id);
-            return success ? NoContent() : NotFound();
-        }
+        // [HttpDelete("{id}")]
+        // public async Task<IActionResult> Delete(int id)
+        // {
+        //     var success = await _authService.DeleteAsync(id);
+        //     return success ? NoContent() : NotFound();
+        // }
     }
 }

@@ -1,9 +1,9 @@
+using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using ProductCRUD.Data;
 using ProductCRUD.Services;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,41 +13,48 @@ builder.Services.AddOpenApi();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection"))
+);
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAngular", policy =>
-    {
-        policy.WithOrigins("http://localhost:4200") // 🎯 อนุญาตให้ Angular พอร์ตนี้ยิงเข้ามาได้
-              .AllowAnyHeader()
-              .AllowAnyMethod();
-    });
+    options.AddPolicy(
+        "AllowAngular",
+        policy =>
+        {
+            policy
+                .WithOrigins("http://localhost:4200") // 🎯 อนุญาตให้ Angular พอร์ตนี้ยิงเข้ามาได้
+                .AllowAnyHeader()
+                .AllowAnyMethod();
+        }
+    );
 });
 
 // 🔐 JWT Authentication Setup
 var jwtSecret = builder.Configuration["Jwt:Secret"]!;
 var key = Encoding.UTF8.GetBytes(jwtSecret);
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
+builder
+    .Services.AddAuthentication(options =>
     {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateIssuer = false,
-        ValidateAudience = false,
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero // token หมดอายุตรงเป๊ะ ไม่มีเวลาผ่อนผัน
-    };
-});
+        options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    })
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(key),
+            ValidateIssuer = false,
+            ValidateAudience = false,
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero, // token หมดอายุ
+        };
+    });
 
 builder.Services.AddAuthorization();
 
@@ -61,7 +68,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors("AllowAngular");
 
-app.UseAuthentication(); // ⚠️ ต้องมาก่อน UseAuthorization เสมอ
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

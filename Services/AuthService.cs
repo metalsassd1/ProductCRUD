@@ -1,13 +1,12 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.Extensions.Configuration;
-using System.IdentityModel.Tokens.Jwt;
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using ProductCRUD.Data;
 using ProductCRUD.DTOs;
 using ProductCRUD.Model;
-using System.Text;
-
 
 namespace ProductCRUD.Services
 {
@@ -17,7 +16,7 @@ namespace ProductCRUD.Services
         private readonly string _jwtSecret;
         private readonly IConfiguration _configuration;
 
-        public AuthService(AppDbContext context , IConfiguration configuration)
+        public AuthService(AppDbContext context, IConfiguration configuration)
         {
             _context = context;
             _configuration = configuration;
@@ -26,7 +25,9 @@ namespace ProductCRUD.Services
 
         public async Task<AuthResponseDto> RegisterAsync(RegisterDto dto)
         {
-            var userExists = await _context.Users.AnyAsync(u => u.Username.ToLower() == dto.Username.ToLower());
+            var userExists = await _context.Users.AnyAsync(u =>
+                u.Username.ToLower() == dto.Username.ToLower()
+            );
             if (userExists)
             {
                 return new AuthResponseDto { Message = "Username นี้มีผู้ใช้งานแล้ว" };
@@ -39,7 +40,7 @@ namespace ProductCRUD.Services
             {
                 Username = dto.Username,
                 PasswordHash = hashedPassword, // เก็บตัวที่แฮชแล้วลงคอลัมน์ passwordHash
-                Role = dto.Role
+                Role = dto.Role,
             };
 
             _context.Users.Add(newUser);
@@ -49,20 +50,24 @@ namespace ProductCRUD.Services
             {
                 Username = newUser.Username,
                 Role = newUser.Role,
-                Message = "สมัครสมาชิกสำเร็จสำเร็จ"
+                Message = "สมัครสมาชิกสำเร็จสำเร็จ",
             };
         }
 
         public async Task<AuthResponseDto?> LoginAsync(LoginDto dto)
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == dto.Username);
-            if (user == null) return null;
+            if (user == null)
+                return null;
 
             bool isPasswordValid = BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash);
-            if (!isPasswordValid) return null;
+            if (!isPasswordValid)
+                return null;
 
             var expiresJson = _configuration["Jwt:ExpiresInMinutes"];
-            double minutes = double.TryParse(expiresJson, out var parsedMinutes) ? parsedMinutes : 60;
+            double minutes = double.TryParse(expiresJson, out var parsedMinutes)
+                ? parsedMinutes
+                : 60;
 
             var expiresAt = DateTime.UtcNow.AddMinutes(minutes);
 
@@ -73,13 +78,18 @@ namespace ProductCRUD.Services
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 // ฝังชื่อและสิทธิ์ (Role) ลงไปในไส้ของตั๋ว
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim(ClaimTypes.Name, user.Username),
-                    new Claim(ClaimTypes.Role, user.Role)
-                }),
+                Subject = new ClaimsIdentity(
+                    new[]
+                    {
+                        new Claim(ClaimTypes.Name, user.Username),
+                        new Claim(ClaimTypes.Role, user.Role),
+                    }
+                ),
                 Expires = expiresAt,
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                SigningCredentials = new SigningCredentials(
+                    new SymmetricSecurityKey(key),
+                    SecurityAlgorithms.HmacSha256Signature
+                ),
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
@@ -91,17 +101,17 @@ namespace ProductCRUD.Services
                 Role = user.Role,
                 Token = finalToken, // 🚀 ส่งตั๋วกลับไปแล้ว!
                 ExpiresAt = expiresAt,
-                Message = "เข้าสู่ระบบสำเร็จ"
+                Message = "เข้าสู่ระบบสำเร็จ",
             };
         }
-        public async Task<bool> DeleteAsync(int id)
-        {
-            var users = await _context.Users.FindAsync(id);
-            if (users == null) return false;
+        // public async Task<bool> DeleteAsync(int id)
+        // {
+        //     var users = await _context.Users.FindAsync(id);
+        //     if (users == null) return false;
 
-            _context.Users.Remove(users);
-            await _context.SaveChangesAsync();
-            return true;
-        }
+        //     _context.Users.Remove(users);
+        //     await _context.SaveChangesAsync();
+        //     return true;
+        // }
     }
 }
