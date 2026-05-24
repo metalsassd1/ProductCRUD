@@ -22,12 +22,6 @@ namespace ProductCRUD.DTOs
         )]
         public string Username { get; set; } = string.Empty;
 
-        // 💡 รหัสผ่านใหม่ (ไม่บังคับกรอก ถ้ากรอกต้องมีความยาวตามเกณฑ์)
-        [StringLength(
-            100,
-            MinimumLength = 6,
-            ErrorMessage = "Password ต้องมีความยาวอย่างน้อย 6 ตัวอักษรขึ้นไป"
-        )]
         public string? NewPassword { get; set; }
 
         [Required(ErrorMessage = "กรุณาระบุสิทธิ์ผู้ใช้งาน")]
