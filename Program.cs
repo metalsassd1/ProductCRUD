@@ -26,7 +26,7 @@ builder.Services.AddCors(options =>
         policy =>
         {
             policy
-                .WithOrigins("http://localhost:4200") // 🎯 อนุญาตให้ Angular พอร์ตนี้ยิงเข้ามาได้
+                .WithOrigins("http://localhost:4200") // อนุญาตให้ Angular พอร์ตนี้ยิงเข้ามาได้
                 .AllowAnyHeader()
                 .AllowAnyMethod();
         }
