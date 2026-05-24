@@ -20,29 +20,34 @@ namespace ProductCRUD.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAll(
+            [FromQuery] string? search,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10
+        )
         {
             var category = await _categoryService.GetAllAsync(search);
-            return Ok(category); 
+            return Ok(category);
         }
 
         //[HttpGet]
         //public async Task<IActionResult> GetByNameAsync([FromQuery] string? name)
         //{
         //    var category = await _categoryService.GetByNameAsync(name);
-        //    return Ok(category); 
+        //    return Ok(category);
         //}
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
             var category = await _categoryService.GetByIdAsync(id);
-            return category != null ? Ok(category) : NotFound(new { message = "ไม่พบหมวดหมู่สินค้านี้" });
+            return category != null
+                ? Ok(category)
+                : NotFound(new { message = "ไม่พบหมวดหมู่สินค้านี้" });
         }
 
-
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CategoryCreateUpdateDto dto) 
+        public async Task<IActionResult> Create([FromBody] CategoryCreateUpdateDto dto)
         {
             var result = await _categoryService.CreateAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);

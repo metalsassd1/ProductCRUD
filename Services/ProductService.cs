@@ -14,7 +14,11 @@ namespace ProductCRUD.Services
             _context = context;
         }
 
-        public async Task<IEnumerable<ProductResponseDto>> GetAllAsync(string? search, int page, int pageSize)
+        public async Task<IEnumerable<ProductResponseDto>> GetAllAsync(
+            string? search,
+            int page,
+            int pageSize
+        )
         {
             var query = _context.Products.Include(p => p.Category).AsQueryable();
 
@@ -34,17 +38,18 @@ namespace ProductCRUD.Services
                     Price = p.Price,
                     Stock = p.Stock,
                     CategoryId = p.CategoryId,
-                    CategoryName = p.Category != null ? p.Category.Name : "ไม่มีหมวดหมู่"
+                    CategoryName = p.Category != null ? p.Category.Name : "ไม่มีหมวดหมู่",
                 })
                 .ToListAsync();
         }
 
         public async Task<bool> DeleteListAsync(List<int> ids)
         {
-            if (ids == null || !ids.Any()) return false;
+            if (ids == null || !ids.Any())
+                return false;
 
-            var deletedCount = await _context.Products
-                .Where(p => ids.Contains(p.Id))
+            var deletedCount = await _context
+                .Products.Where(p => ids.Contains(p.Id))
                 .ExecuteDeleteAsync();
 
             // ส่งค่ากลับเป็น true ถ้ามีการลบออกไปจริงมากกว่า 0 รายการ
@@ -53,8 +58,11 @@ namespace ProductCRUD.Services
 
         public async Task<ProductResponseDto?> GetByIdAsync(int id)
         {
-            var p = await _context.Products.Include(p => p.Category).FirstOrDefaultAsync(x => x.Id == id);
-            if (p == null) return null;
+            var p = await _context
+                .Products.Include(p => p.Category)
+                .FirstOrDefaultAsync(x => x.Id == id);
+            if (p == null)
+                return null;
 
             return new ProductResponseDto
             {
@@ -64,7 +72,7 @@ namespace ProductCRUD.Services
                 Price = p.Price,
                 Stock = p.Stock,
                 CategoryId = p.CategoryId,
-                CategoryName = p.Category?.Name ?? "ไม่มีหมวดหมู่"
+                CategoryName = p.Category?.Name ?? "ไม่มีหมวดหมู่",
             };
         }
 
@@ -76,7 +84,7 @@ namespace ProductCRUD.Services
                 Description = dto.Description,
                 Price = dto.Price,
                 Stock = dto.Stock,
-                CategoryId = dto.CategoryId
+                CategoryId = dto.CategoryId,
             };
 
             _context.Products.Add(product);
@@ -88,7 +96,8 @@ namespace ProductCRUD.Services
         public async Task<bool> UpdateAsync(int id, ProductCreateUpdateDto dto)
         {
             var product = await _context.Products.FindAsync(id);
-            if (product == null) return false;
+            if (product == null)
+                return false;
 
             product.Name = dto.Name;
             product.Description = dto.Description;
@@ -103,7 +112,8 @@ namespace ProductCRUD.Services
         public async Task<bool> DeleteAsync(int id)
         {
             var product = await _context.Products.FindAsync(id);
-            if (product == null) return false;
+            if (product == null)
+                return false;
 
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();

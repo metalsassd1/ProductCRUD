@@ -27,9 +27,9 @@ namespace ProductCRUD.Services
                 {
                     Id = c.Id,
                     Name = c.Name,
-                    Description = c.Description
+                    Description = c.Description,
                 })
-                .ToListAsync(); 
+                .ToListAsync();
         }
 
         //public async Task<CategoryResponseDto?> GetByNameAsync(string name)
@@ -50,7 +50,8 @@ namespace ProductCRUD.Services
         public async Task<CategoryResponseDto?> GetByIdAsync(int id)
         {
             var c = await _context.Categories.FirstOrDefaultAsync(x => x.Id == id);
-            if (c == null) return null;
+            if (c == null)
+                return null;
 
             return new CategoryResponseDto
             {
@@ -62,11 +63,7 @@ namespace ProductCRUD.Services
 
         public async Task<CategoryResponseDto> CreateAsync(CategoryCreateUpdateDto dto)
         {
-            var category = new Category
-            {
-                Name = dto.Name,
-                Description = dto.Description
-            };
+            var category = new Category { Name = dto.Name, Description = dto.Description };
 
             // บันทึกเข้าตาราง Categories ให้ตรงตาราง
             _context.Categories.Add(category);
@@ -76,14 +73,15 @@ namespace ProductCRUD.Services
             {
                 Id = category.Id,
                 Name = category.Name,
-                Description = category.Description
+                Description = category.Description,
             };
         }
 
         public async Task<bool> UpdateAsync(int id, CategoryCreateUpdateDto dto)
         {
             var category = await _context.Categories.FindAsync(id);
-            if (category == null) return false;
+            if (category == null)
+                return false;
 
             category.Name = dto.Name;
             category.Description = dto.Description;
@@ -95,7 +93,8 @@ namespace ProductCRUD.Services
         public async Task<bool> DeleteAsync(int id)
         {
             var category = await _context.Categories.FindAsync(id);
-            if (category == null) return false;
+            if (category == null)
+                return false;
 
             _context.Categories.Remove(category);
             await _context.SaveChangesAsync();

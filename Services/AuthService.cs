@@ -93,13 +93,13 @@ namespace ProductCRUD.Services
             };
 
             var token = tokenHandler.CreateToken(tokenDescriptor);
-            string finalToken = tokenHandler.WriteToken(token); // ได้สายอักขระ Token ยาวๆ มาครอง
+            string finalToken = tokenHandler.WriteToken(token); 
 
             return new AuthResponseDto
             {
                 Username = user.Username,
                 Role = user.Role,
-                Token = finalToken, // 🚀 ส่งตั๋วกลับไปแล้ว!
+                Token = finalToken, 
                 ExpiresAt = expiresAt,
                 Message = "เข้าสู่ระบบสำเร็จ",
             };

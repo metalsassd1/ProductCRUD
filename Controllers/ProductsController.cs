@@ -18,10 +18,14 @@ namespace ProductCRUD.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] string? search, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAll(
+            [FromQuery] string? search,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10
+        )
         {
             var products = await _productService.GetAllAsync(search, page, pageSize);
-            return Ok(products); 
+            return Ok(products);
         }
 
         [HttpGet("{id}")]
@@ -32,7 +36,7 @@ namespace ProductCRUD.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] ProductCreateUpdateDto dto) 
+        public async Task<IActionResult> Create([FromBody] ProductCreateUpdateDto dto)
         {
             var result = await _productService.CreateAsync(dto);
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
@@ -61,9 +65,12 @@ namespace ProductCRUD.Controllers
             }
 
             var success = await _productService.DeleteListAsync(dto.Ids);
-            
-            // ถ้าลบสำเร็จส่ง 204 (NoContent) หรือ 200 (Ok) กลับ
-            return success ? NoContent() : NotFound(new { message = "ไม่พบสินค้าตาม ID ที่ระบุ หรือสินค้าถูกลบไปก่อนหน้านี้แล้ว" });
+
+            return success
+                ? NoContent()
+                : NotFound(
+                    new { message = "ไม่พบสินค้าตาม ID ที่ระบุ หรือสินค้าถูกลบไปก่อนหน้านี้แล้ว" }
+                );
         }
     }
 }
