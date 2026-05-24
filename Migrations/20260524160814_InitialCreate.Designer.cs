@@ -10,8 +10,8 @@ using ProductCRUD.Data;
 namespace ProductCRUD.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260524135507_SeedAdminUser")]
-    partial class SeedAdminUser
+    [Migration("20260524160814_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
