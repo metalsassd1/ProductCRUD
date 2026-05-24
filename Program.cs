@@ -17,6 +17,16 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAngular", policy =>
+    {
+        policy.WithOrigins("http://localhost:4200") // 🎯 อนุญาตให้ Angular พอร์ตนี้ยิงเข้ามาได้
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 // 🔐 JWT Authentication Setup
 var jwtSecret = builder.Configuration["Jwt:Secret"]!;
 var key = Encoding.UTF8.GetBytes(jwtSecret);
@@ -49,6 +59,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowAngular");
 
 app.UseAuthentication(); // ⚠️ ต้องมาก่อน UseAuthorization เสมอ
 app.UseAuthorization();
